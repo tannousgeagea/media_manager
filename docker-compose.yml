@@ -1,0 +1,89 @@
+version: '3.3'
+
+services:
+  # core
+  media-manager:
+    image: wasteant/wasteant:media-manager-service-ubuntu.20.04
+    container_name: media-manager-core
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
+    build:
+      context: .
+      args:
+        user: ${user}
+        userid: ${userid}
+        group: ${group}
+        groupid: ${groupid}
+    networks:
+      - internal
+    ports:
+      - ${INET_HTTP_SERVER_PORT}:${INET_HTTP_SERVER_PORT}
+      - ${EVENT_API_PORT}:${EVENT_API_PORT}
+      - ${DJANGO_ADMIN_PORT}:${DJANGO_ADMIN_PORT}
+      - ${FLOWER_PORT}:${FLOWER_PORT}
+      - ${DATA_API_PORT}:${DATA_API_PORT}
+    env_file: .env
+    restart: unless-stopped
+    volumes:
+      - .:/home/$user/src
+      - /media/$user/media_manager:/media/$user/media_manager
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    user: ${user}
+    depends_on:
+      - rabbitmq
+      - postgres
+      - redis
+
+  # redis
+  redis:
+    image: "redis:alpine"
+    container_name: video-service-redis
+    restart: "always"
+    networks:
+      - internal
+    volumes:
+    - cache:/data
+    - ./redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+
+
+  # RabbitMQ Service
+  rabbitmq:
+    image: "rabbitmq:3-management-alpine"
+    container_name: media-manager-rabbitmq
+    env_file: .env
+    ports:
+      - "${RABBITMQ_PORT}:5672"
+      - "${RABBITMQ_INTERFACE_PORT}:15672"
+    volumes:
+      - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq
+      - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
+    networks:
+      - internal
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_VHOST: "/"
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+  postgres:
+    image: postgres:latest
+    container_name: media-manager-postgres
+    env_file: .env
+    environment:
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWD}
+      POSTGRES_DB: ${DATABASE_NAME}
+    networks:
+     - internal
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+networks:
+  internal:
+    driver: bridge 
+
+volumes:
+  cache:
+    driver: local
+  postgres_data:
