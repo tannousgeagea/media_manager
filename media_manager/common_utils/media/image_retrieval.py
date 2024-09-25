@@ -18,38 +18,45 @@ redis_manager = RedisManager(
 class ImageRetriever:
     def __init__(self):
         self.retrieving_event = threading.Event()
-        self.frames = []
-        self.image_ids = []
+        self.frames = {}
+        self.image_ids = {}
         self.thread = None
+        self.threads = {}
         
     def start(self, set_name:str, min_ts=None):
         self.retrieving_event.set()
-        if not self.thread or not self.thread.is_alive():
+        if set_name not in self.threads or not self.threads[set_name].is_alive():
             
             if min_ts is None:
                 min_ts = time.time()
                 
-            self.thread = threading.Thread(target=self.retrieve_frames, args=(set_name, min_ts,))
-            self.thread.start()
+            thread = threading.Thread(target=self.retrieve_frames, args=(set_name, min_ts,))
+            self.threads[set_name] = thread
+            thread.start()
 
-    def stop(self):
+    def stop(self, video_paths:dict=None):
         self.retrieving_event.clear()
-        if self.thread:
-            self.thread.join()
-            self.thread = None
+        
+        for set_name, thread in self.threads.items():
+            if thread.is_alive():
+                thread.join()
             
-        generate_video(
-            frames=self.frames,
-            framerate=5,
-            video_path='/home/appuser/src/test.mp4',
-            scale=0.5
-        )
+            if video_paths:
+                generate_video(
+                    frames=self.frames[set_name],
+                    framerate=5,
+                    video_path=video_paths[set_name],
+                    scale=0.5
+                )
 
     def retrieve_frames(self, set_name:str, min_ts=None):
         print('Start retrieving ...')
         if min_ts is None:
             min_ts = time.time()
-            
+        
+        self.image_ids[set_name] = []
+        self.frames[set_name] = []
+        
         while self.retrieving_event.is_set():
             images = redis_manager.redis_client.zrangebyscore(set_name, int(min_ts), '+inf', withscores=True)
             if not images:
@@ -57,14 +64,14 @@ class ImageRetriever:
                 continue
             
             for image, key in images:
-                if key in self.image_ids:
+                if key in self.image_ids[set_name]:
                     continue
             
                 image_array = np.frombuffer(image, dtype=np.uint8)
                 image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
                 
-                print(f"Retrieving: {key} ... ...")
-                self.image_ids.append(key)
-                self.frames.append(image)
+                print(f"Retrieving from {set_name}: {key} ... ...")
+                self.image_ids[set_name].append(key)
+                self.frames[set_name].append(image)
         
     

@@ -1,7 +1,9 @@
+import re
 import cv2
 import logging
 import subprocess
 from PIL import Image
+from decimal import Decimal
 
 def create_video_from_frames(output_filename, width, height, framerate=24):
     command = [
@@ -44,3 +46,16 @@ def generate_video(frames, framerate, video_path, scale=1.):
 
     process.stdin.close()
     process.wait()
+    
+
+def get_video_length(path):
+    process = subprocess.Popen(['/usr/bin/ffmpeg', '-i', path], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    stdout, stderr = process.communicate()
+    # Correcting the regex pattern
+    matches = re.search(r"Duration:\s(?P<hours>\d+):(?P<minutes>\d+):(?P<seconds>\d+\.\d+)", stdout.decode('utf-8'), re.DOTALL).groupdict()
+
+    hours = float(matches['hours'])
+    minutes = float(matches['minutes'])
+    seconds =float(matches['seconds'])
+
+    return hours, minutes, seconds

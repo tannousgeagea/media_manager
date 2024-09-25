@@ -1,8 +1,9 @@
+import hashlib
 from django.db import models
 
 
 def get_media_path(instance, filename):
-    return f"{instance.event.event_id}/{instance.media_id}/{filename}"
+    return f"{instance.event.event_name}/{instance.event.event_id}/{instance.media_type}/{instance.media_id}_{filename}"
 
 # Create your models here.
 class PlantInfo(models.Model):
@@ -62,7 +63,7 @@ class Event(models.Model):
         unique_together = ('edge_box', "event_id")
     
     def __str__(self):
-        return f"{self.edge_box}, {self.event_id}, {self.event_name}"
+        return f"{self.event_name}"
 
 class Media(models.Model):
     IMAGE = 'image'
@@ -73,10 +74,11 @@ class Media(models.Model):
     ]
     
     event = models.ForeignKey(Event, on_delete=models.CASCADE, db_index=True)
+    source_id = models.CharField(max_length=255)
     media_id = models.CharField(max_length=255, unique=True, db_index=True)
-    media_name = models.CharField(max_length=100)
-    media_type = models.CharField(max_length=10, choices=MEDIA_TYPE_CHOICES)
-    media_file = models.FileField(upload_to=get_media_path)
+    media_name = models.CharField(max_length=255)
+    media_type = models.CharField(max_length=100, choices=MEDIA_TYPE_CHOICES)
+    media_file = models.FileField(upload_to=get_media_path, max_length=255)
     file_size = models.BigIntegerField(null=True, blank=True)  # Store size in bytes
     duration = models.DurationField(null=True, blank=True)  # Duration for videos
     created_at = models.DateTimeField(auto_now_add=True)

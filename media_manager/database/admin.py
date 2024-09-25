@@ -45,7 +45,7 @@ class EventAdmin(admin.ModelAdmin):
 # Customizing the Media admin interface
 @admin.register(Media)
 class MediaAdmin(admin.ModelAdmin):
-    list_display = ('media_name', 'media_type', 'event', 'file_size', 'duration', 'created_at')  # List these fields in the media list view
+    list_display = ('media_name', 'media_type', 'event', 'media_file', 'source_id', 'file_size', 'duration', 'created_at')  # List these fields in the media list view
     search_fields = ('media_name', 'media_id', 'event__event_name')  # Enable search by media name, ID, and event name
     list_filter = ('media_type', 'created_at', 'event__edge_box__plant')  # Add filter options for media type, date, and plant
     ordering = ('-created_at',)  # Order by the most recent creation date

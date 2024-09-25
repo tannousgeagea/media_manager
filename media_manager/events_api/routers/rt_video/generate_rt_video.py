@@ -43,6 +43,7 @@ class ApiRequest(BaseModel):
     event_type:str
     timestamp: datetime
     event_description:str
+    topics:str
 
 
 router = APIRouter(
@@ -61,7 +62,7 @@ async def start_rt_video(
     event:ApiRequest = Depends(),
     x_request_id: Annotated[Optional[str], Header()] = None,
 ) -> dict:
-    
+
     task = core.start_retrieving.apply_async(args=(event,), task_id=x_request_id)
     result = {"status": "received", "task_id": task.id, "data": {}}
 
