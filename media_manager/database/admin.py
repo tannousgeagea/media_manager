@@ -17,7 +17,7 @@ class PlantInfoAdmin(admin.ModelAdmin):
 # Customizing the EdgeBoxInfo admin interface
 @admin.register(EdgeBoxInfo)
 class EdgeBoxInfoAdmin(admin.ModelAdmin):
-    list_display = ('plant', 'edge_box_id', 'edge_box_location', 'created_at')  # Fields to show in the list view
+    list_display = ('plant', 'edge_box_id', 'location', 'created_at')  # Fields to show in the list view
     search_fields = ('edge_box_id', 'edge_box_location')  # Enable search by these fields
     list_filter = ('plant', 'created_at')  # Add filter options for plant and created_at
     ordering = ('-created_at',)  # Order by created_at, descending

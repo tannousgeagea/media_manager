@@ -37,7 +37,12 @@ class ApiResponse(BaseModel):
 
 
 class ApiRequest(BaseModel):
-    request: Optional[Dict[AnyStr, Any]] = None
+    gate_id:str
+    event_id:str
+    event_name:str
+    event_type:str
+    timestamp: datetime
+    event_description:str
 
 
 router = APIRouter(
@@ -52,12 +57,12 @@ router = APIRouter(
     "/event/rt_video/start", methods=["POST"], tags=["RT_Videos"]
 )
 async def start_rt_video(
-    event:dict,
-    response: Response,
+    response:Response,
+    event:ApiRequest = Depends(),
     x_request_id: Annotated[Optional[str], Header()] = None,
 ) -> dict:
     
-    task = core.start_retrieving.apply_async(kwargs=event, task_id=x_request_id)
+    task = core.start_retrieving.apply_async(args=(event,), task_id=x_request_id)
     result = {"status": "received", "task_id": task.id, "data": {}}
 
     return result
@@ -66,12 +71,12 @@ async def start_rt_video(
     "/event/rt_video/stop", methods=["POST"], tags=["RT_Videos"]
 )
 async def stop_rt_video(
-    event:dict,
-    response: Response,
+    response:Response,
+    event:ApiRequest = Depends(),
     x_request_id: Annotated[Optional[str], Header()] = None,
 ) -> dict:
     
-    task = core.stop_retrieving.apply_async(kwargs=event, task_id=x_request_id)
+    task = core.stop_retrieving.apply_async(args=(event, ), task_id=x_request_id)
     result = {"status": "received", "task_id": task.id, "data": {}}
 
     return result

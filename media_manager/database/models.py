@@ -24,7 +24,7 @@ class PlantInfo(models.Model):
 class EdgeBoxInfo(models.Model):
     plant = models.ForeignKey(PlantInfo, on_delete=models.CASCADE)
     edge_box_id = models.CharField(max_length=255, unique=True)
-    edge_box_location = models.CharField(max_length=255)
+    location = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     meta_info =  models.JSONField(null=True, blank=True)
     
@@ -59,6 +59,7 @@ class Event(models.Model):
     class Meta:
         db_table = 'event'
         verbose_name_plural = 'Events'
+        unique_together = ('edge_box', "event_id")
     
     def __str__(self):
         return f"{self.edge_box}, {self.event_id}, {self.event_name}"
