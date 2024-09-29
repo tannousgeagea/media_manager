@@ -26,7 +26,7 @@ services:
     restart: unless-stopped
     volumes:
       - .:/home/$user/src
-      - /media/$user/media_manager:/media/$user/media_manager
+      - media:/media/$user/media_manager
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
     user: ${user}
     depends_on:
@@ -87,3 +87,4 @@ volumes:
   cache:
     driver: local
   postgres_data:
+  media:

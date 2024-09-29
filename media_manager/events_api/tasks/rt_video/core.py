@@ -102,10 +102,11 @@ def stop_retrieving(self, event, **kwargs):
         )
         
         for source, media_model in media.items():
-            media_model.file_size = os.stat(video_paths[source]).st_size
-            h, m, s = get_video_length(path=video_paths[source])
-            media_model.duration = timedelta(hours=h, minutes=m, seconds=s) 
-            media_model.save()
+            if os.path.exists(video_paths[source]):
+                media_model.file_size = os.stat(video_paths[source]).st_size
+                h, m, s = get_video_length(path=video_paths[source])
+                media_model.duration = timedelta(hours=h, minutes=m, seconds=s) 
+                media_model.save()
             
         data = {
             "action": "stopped",
