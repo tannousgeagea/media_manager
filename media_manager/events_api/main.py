@@ -11,6 +11,7 @@ from asgi_correlation_id import correlation_id
 
 from events_api.config import celery_utils
 from events_api.routers.rt_video import generate_rt_video
+from events_api.routers.video import generte_video
 
 
 def create_app() -> FastAPI:
@@ -50,6 +51,7 @@ def create_app() -> FastAPI:
 
     app.celery_app = celery_utils.create_celery()
     app.include_router(generate_rt_video.router)
+    app.include_router(generte_video.router)
     
     return app
 
