@@ -37,7 +37,7 @@ services:
   # redis
   redis:
     image: "redis:alpine"
-    container_name: video-service-redis
+    container_name: media-manager-redis
     restart: "always"
     networks:
       - internal
@@ -81,7 +81,7 @@ services:
 
 networks:
   internal:
-    driver: bridge 
+    driver: bridge
 
 volumes:
   cache:
