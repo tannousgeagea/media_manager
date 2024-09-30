@@ -32,6 +32,14 @@ def start_retrieving(self, event, **kwargs):
         event_model.save()
         return data
     
+    if event_model.status ==  'completed':
+        data = {
+            "action": "ignored",
+            "time": datetime.now().strftime("%Y-%m-%d %H-%M-%S"),
+            "results": f"ignore request - event_id {event.event_id} already processed and executed"
+        }
+        return data
+    
     topics = event.topics.split(",")
     if isinstance(event.topics, str):
         event.topics = [event.topics]
