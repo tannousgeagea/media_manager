@@ -5,9 +5,13 @@ import logging
 import numpy as np
 from rclpy.node import Node
 from sensor_msgs.msg import Image
+from datetime import datetime, timezone
 from sensor_msgs.msg import CompressedImage
 from cv_bridge import CvBridge, CvBridgeError
 from typing import Optional, Union, List, AnyStr
+from common_utils.time.time_tracker import KeepTrackOfTime
+
+keep_track_of_time = KeepTrackOfTime()  
 
 class ROS2Manager(Node):
     def __init__(self, topics:Optional[Union[List, AnyStr]], msg_type:Optional[Union[List, AnyStr]], callback=None):
@@ -36,19 +40,33 @@ class ROS2Manager(Node):
         Default Callback to image subscription
         """
         def callback_(msg):
-            logging.info(f"Received message from {topic}")
+
+            if keep_track_of_time.check_if_time_less_than_diff(
+                start=keep_track_of_time.what_is_the_time,
+                end=time.time(),
+                diff=1,
+            ):
+                return
+            
+            dt = datetime.now(tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+            logging.info(f"{dt}: Received message from {topic}")
             cv_image = self.msg_to_cv2(msg)
+            h0, w0, _ = cv_image.shape
+            cv_image = cv2.resize(cv_image, (int(w0 * 0.5), int(h0 * 0.5)), interpolation=cv2.INTER_NEAREST)
             
             payload = {
                 "cv_image": cv_image,
                 "img_key": str(time.time()),
                 "timestamp": str(msg.header.stamp.sec + msg.header.stamp.nanosec * 10e-9),
                 "set_name": str(topic),
+                "datetime": dt,
             }
 
             if callback:
                 callback(payload)
                 
+            keep_track_of_time.update_time()
+            
         return callback_
         
     def message_type(self, msg_type):

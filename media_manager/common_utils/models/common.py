@@ -35,6 +35,7 @@ def get_event(event):
     event_model.event_type = event.event_type
     event_model.event_description =  event.event_description
     event_model.timestamp = event.timestamp.replace(tzinfo=timezone.utc)
+    event_model.save()
     
     return event_model
 
@@ -44,6 +45,7 @@ def get_media(
     media_id:str, 
     media_name:str,
     media_type:str,
+    source_id:str=None,
     meta_info:dict=None,
     
     ):
@@ -57,6 +59,7 @@ def get_media(
         media.media_id=media_id
         media.media_name=media_name
         media.media_type=media_type
+        media.source_id = source_id
         media.meta_info=meta_info
         success = True
     except Exception as err:

@@ -10,7 +10,7 @@ from typing_extensions import Annotated
 from datetime import datetime, timedelta
 from fastapi import FastAPI, Depends, APIRouter, Request, Header, Response
 from typing import Callable, Union, Any, Dict, AnyStr, Optional, List
-from events_api.tasks.video import core
+from events_api.tasks.image import core
 
 
 class TimedRoute(APIRoute):
@@ -48,22 +48,22 @@ class ApiRequest(BaseModel):
 
 router = APIRouter(
     prefix="/api/v1",
-    tags=["Videos"],
+    tags=["Images"],
     route_class=TimedRoute,
     responses={404: {"description": "Not found"}},
 )
 
 
 @router.api_route(
-    "/event/video", methods=["POST"], tags=["Videos"]
+    "/event/image", methods=["POST"], tags=["Images"]
 )
-async def generate_video(
+async def generate_image(
     response:Response,
     event:ApiRequest = Depends(),
     x_request_id: Annotated[Optional[str], Header()] = None,
 ) -> dict:
 
-    task = core.generate_video.apply_async(args=(event,), task_id=x_request_id)
+    task = core.generate_image.apply_async(args=(event,), task_id=x_request_id)
     result = {"status": "received", "task_id": task.id, "data": {}}
 
     return result

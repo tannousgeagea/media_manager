@@ -3,7 +3,7 @@ from django.db import models
 
 
 def get_media_path(instance, filename):
-    return f"{instance.event.event_name}/{instance.event.event_id}/{instance.media_type}/{instance.media_id}_{filename}"
+    return f"{instance.event.event_name}/{instance.event.event_id}/{instance.media_type}_{instance.media_id}_{filename}"
 
 # Create your models here.
 class PlantInfo(models.Model):

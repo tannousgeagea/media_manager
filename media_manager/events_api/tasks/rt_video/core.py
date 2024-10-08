@@ -32,13 +32,13 @@ def start_retrieving(self, event, **kwargs):
         event_model.save()
         return data
     
-    if event_model.status ==  'completed':
-        data = {
-            "action": "ignored",
-            "time": datetime.now().strftime("%Y-%m-%d %H-%M-%S"),
-            "results": f"ignore request - event_id {event.event_id} already processed and executed"
-        }
-        return data
+    # if event_model.status ==  'completed':
+    #     data = {
+    #         "action": "ignored",
+    #         "time": datetime.now().strftime("%Y-%m-%d %H-%M-%S"),
+    #         "results": f"ignore request - event_id {event.event_id} already processed and executed"
+    #     }
+    #     return data
     
     topics = event.topics.split(",")
     if isinstance(event.topics, str):
@@ -91,7 +91,8 @@ def stop_retrieving(self, event, **kwargs):
                 event=event_model, 
                 media_id=event.event_id, 
                 media_name=event.event_name, 
-                media_type="video"
+                media_type="video",
+                source_id=source,
                 )
             
             video_path = get_media_path(media_model, filename=filename)
@@ -101,7 +102,6 @@ def stop_retrieving(self, event, **kwargs):
                 os.makedirs(os.path.dirname(f"{settings.MEDIA_ROOT}/{video_path}"))
             
             media_model.media_file = video_path
-            media_model.source_id = source
             media[source] = media_model
             video_paths[source] = f"{settings.MEDIA_ROOT}/{video_path}"
             

@@ -28,14 +28,13 @@ redis_manager = RedisManager(
 )
 
 @shared_task(bind=True,autoretry_for=(Exception,), retry_backoff=True, retry_kwargs={"max_retries": 5}, ignore_result=True,
-             name='video:generate_video')
-def generate_video(self, event, **kwargs):
+             name='image:generate_image')
+def generate_image(self, event, **kwargs):
     data:dict = {}
     try:
         set_name = event.topic
         event_model = get_event(event)
-        timestamp = time.time()
-        images = redis_manager.redis_client.zrangebyscore(set_name, min=(timestamp - 120), max=timestamp + 10)
+        images = redis_manager.redis_client.zrangebyscore(set_name, min=(time.time() - 1), max='+inf')
         
         if not images:
             event_model.status = "failed"
@@ -43,41 +42,40 @@ def generate_video(self, event, **kwargs):
             event_model.save()
             raise ValueError(f'No images found in {set_name}')
         
-        frames = []
-        for image in images:
-            frames.append(
-                cv2.imdecode(
-                    np.frombuffer(image, dtype=np.uint8), 
-                    cv2.IMREAD_COLOR)
-            )
-            
-            
-        filename = f'{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.mp4'
-        success, media = get_media(event_model, media_id=str(uuid.uuid4()), media_name="video", media_type="video", source_id=set_name)
-        video_path = get_media_path(media, filename=filename)
+        
+        image = cv2.imdecode(
+                    np.frombuffer(
+                        images[-1], 
+                        dtype=np.uint8), 
+                    cv2.IMREAD_COLOR
+                    )
+             
+        filename = f'{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.jpg'
+        success, media = get_media(event_model, media_id=str(uuid.uuid4()), media_name=filename, media_type="image", source_id=set_name)
+        image_path = get_media_path(media, filename=filename)
 
         if not os.path.exists(
-            os.path.dirname(f"{settings.MEDIA_ROOT}/{video_path}")
+            os.path.dirname(f"{settings.MEDIA_ROOT}/{image_path}")
         ):
-            os.makedirs(os.path.dirname(f"{settings.MEDIA_ROOT}/{video_path}"))        
-
-        gen_video(
-            frames=frames,
-            framerate=FRAME_RATE,
-            video_path=f"{settings.MEDIA_ROOT}/{video_path}",
-            scale=0.5,
+            os.makedirs(os.path.dirname(f"{settings.MEDIA_ROOT}/{image_path}"))
+            
+        cv2.imwrite(
+            f"{settings.MEDIA_ROOT}/{image_path}", image
         )
 
-        if not os.path.exists(f"{settings.MEDIA_ROOT}/{video_path}"):
+        if not os.path.exists(f"{settings.MEDIA_ROOT}/{image_path}"):
             event_model.status = "failed"
-            event_model.status_description = f"{settings.MEDIA_ROOT}/{video_path} not found"
+            event_model.status_description = f"{settings.MEDIA_ROOT}/{image_path} not found"
             event_model.save()
             
-            
-        media.media_file = video_path
-        media.file_size = os.stat(f"{settings.MEDIA_ROOT}/{video_path}").st_size
-        h, m, s = get_video_length(path=f"{settings.MEDIA_ROOT}/{video_path}")
-        media.duration = timedelta(hours=h, minutes=m, seconds=s) 
+            return {
+                "action": "failed",
+                "time": datetime.now().strftime("%Y-%m-%d %H-%M-%S"),
+                "results": "{settings.MEDIA_ROOT}/{image_path} not found",
+            }
+              
+        media.media_file = image_path
+        media.file_size = os.stat(f"{settings.MEDIA_ROOT}/{image_path}").st_size
         media.save()        
 
         data = {
@@ -90,4 +88,4 @@ def generate_video(self, event, **kwargs):
         return data
             
     except Exception as err:
-        raise ValueError(f"Error generating video: {err}")
+        raise ValueError(f"Error generating image: {err}")
