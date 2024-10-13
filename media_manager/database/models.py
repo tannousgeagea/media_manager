@@ -17,7 +17,7 @@ class PlantInfo(models.Model):
     class Meta:
         db_table = 'plant_info'
         verbose_name_plural = 'Plant Information'
-        unique_together = ('plant_name', 'plant_location')
+        # unique_together = ('plant_name', 'plant_location')
 
     def __str__(self):
         return f"{self.plant_name} in {self.plant_location}"
