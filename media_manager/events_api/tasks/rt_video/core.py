@@ -2,6 +2,7 @@ import os
 import django
 django.setup()
 
+import json
 from celery import Celery
 from celery import shared_task
 from datetime import datetime, timedelta
@@ -13,6 +14,7 @@ from database.models import (
     get_media_path,
 )
 
+from common_utils.media.edge_to_cloud import sync
 FRAME_RATE = int(os.environ.get('FRAME_RATE', 5))
 image_retriever = ImageRetriever()
 
@@ -115,6 +117,44 @@ def stop_retrieving(self, event, **kwargs):
                 h, m, s = get_video_length(path=video_paths[source])
                 media_model.duration = timedelta(hours=h, minutes=m, seconds=s) 
                 media_model.save()
+                
+                _data = {
+                    "delivery_id": event.event_id,
+                    "media_id": media_model.media_id,
+                    "media_name": media_model.media_name,
+                    "media_type": media_model.media_type,
+                    "media_url": media_model.media_file.url,
+                        }
+                
+                params = {
+                    'event_id': media_model.media_id,
+                    'source_id': "media-manager",
+                    'blob_name': os.path.basename(media_model.media_file.url),
+                    'container_name': "delivery",
+                    'target': "delivery/media",
+                    'data': json.dumps(_data),
+                }
+                
+                sync(
+                    url=f"http://{os.getenv('EDGE_CLOUD_SYNC_HOST', '0.0.0.0')}:{os.getenv('EDGE_CLOUD_SYNC_PORT', '27092')}/api/v1/event/media",
+                    media_file=f"{video_paths[source]}",
+                    params={   
+                        'event_id': media_model.media_id,
+                        'source_id': "media-manager",
+                        'blob_name': os.path.basename(media_model.media_file.url),
+                        'container_name': "delivery",
+                        'target': "delivery/media",
+                        'data': json.dumps(
+                            {
+                                "delivery_id": event.event_id,
+                                "media_id": media_model.media_id,
+                                "media_name": media_model.media_name,
+                                "media_type": media_model.media_type,
+                                "media_url": media_model.media_file.url,    
+                            }
+                        )
+                    },
+                )
             
         data = {
             "action": "stopped",

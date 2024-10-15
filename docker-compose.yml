@@ -16,6 +16,7 @@ services:
         groupid: ${groupid}
     networks:
       - internal
+      - edge_cloud_sync_internal
     ports:
       - ${INET_HTTP_SERVER_PORT}:${INET_HTTP_SERVER_PORT}
       - ${EVENT_API_PORT}:${EVENT_API_PORT}
@@ -67,6 +68,7 @@ services:
       RABBITMQ_DEFAULT_PASS: guest
 
   postgres:
+    hostname: media_postgres
     image: postgres:latest
     container_name: media-manager-postgres
     env_file: .env
@@ -82,6 +84,8 @@ services:
 networks:
   internal:
     driver: bridge
+  edge_cloud_sync_internal:
+    external: true
 
 volumes:
   cache:

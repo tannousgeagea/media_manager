@@ -82,6 +82,7 @@ class Media(models.Model):
     file_size = models.BigIntegerField(null=True, blank=True)  # Store size in bytes
     duration = models.DurationField(null=True, blank=True)  # Duration for videos
     created_at = models.DateTimeField(auto_now_add=True)
+    uploaded = models.BooleanField(default=False)
     meta_info = models.JSONField(null=True, blank=True)
     
     class Meta:

@@ -80,6 +80,22 @@ RUN apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -q -y --no-install-recommends \
+    apt-utils \
+    vim \
+    git \
+    iputils-ping \
+    net-tools \
+    netcat \
+    ssh \
+    curl \
+    lsb-release \
+    wget \
+    zip \
+    sudo \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
 # install python packages
 RUN pip3 install supervisor
 RUN pip3 install fastapi[standard]
@@ -126,6 +142,9 @@ RUN mkdir -p /var/log/supervisor && \
 COPY . /home/${user}/src
 
 COPY ./supervisord.conf /etc/supervisord.conf
+COPY ./prefix-output.sh /prefix-output.sh
+RUN /bin/bash -c "chmod +x /prefix-output.sh"
+
 COPY ./entrypoint.sh /home/.
 RUN /bin/bash -c "chown $user:$user /home/entrypoint.sh"
 
