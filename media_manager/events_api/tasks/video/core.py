@@ -89,11 +89,11 @@ def generate_video(self, event, **kwargs):
                 'event_id': media.media_id,
                 'source_id': "media-manager",
                 'blob_name': os.path.basename(media.media_file.url),
-                'container_name': "delivery",
-                'target': "delivery/media",
+                'container_name': "alarm/impurity",
+                'target': "alarm/media",
                 'data': json.dumps(
                     {
-                        "delivery_id": event.event_id,
+                        "event_uid": event.event_id,
                         "media_id": media.media_id,
                         "media_name": media.media_name,
                         "media_type": media.media_type,

@@ -37,10 +37,10 @@ def generate_image(self, event, **kwargs):
     try:
         set_name = event.topic
         event_model = get_event(event)
-        images = redis_manager.redis_client.zrangebyscore(set_name, min=(time.time() - 1), max='+inf')
+        images = redis_manager.redis_client.zrangebyscore(set_name, min=(time.time() - 3), max='+inf')
         
         if not images:
-            event_model.status = "failed"
+            # event_model.status = "failed"
             event_model.status_description = f"No images found in {set_name}"
             event_model.save()
             raise ValueError(f'No images found in {set_name}')
@@ -67,7 +67,7 @@ def generate_image(self, event, **kwargs):
         )
 
         if not os.path.exists(f"{settings.MEDIA_ROOT}/{image_path}"):
-            event_model.status = "failed"
+            # event_model.status = "failed"
             event_model.status_description = f"{settings.MEDIA_ROOT}/{image_path} not found"
             event_model.save()
             
@@ -107,7 +107,7 @@ def generate_image(self, event, **kwargs):
             "time": datetime.now().strftime("%Y-%m-%d %H-%M-%S")
         }
         
-        event_model.status = "completed"
+        # event_model.status = "completed"
         event_model.save()
         return data
             
