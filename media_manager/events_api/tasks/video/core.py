@@ -4,6 +4,7 @@ import uuid
 import django
 django.setup()
 
+import json
 import time
 import logging
 import numpy as np
@@ -18,6 +19,7 @@ from django.conf import settings
 from database.models import (
     get_media_path,
 )
+from common_utils.media.edge_to_cloud import sync
 
 FRAME_RATE = int(os.environ.get('FRAME_RATE', 5))
 redis_manager = RedisManager(
@@ -79,6 +81,27 @@ def generate_video(self, event, **kwargs):
         h, m, s = get_video_length(path=f"{settings.MEDIA_ROOT}/{video_path}")
         media.duration = timedelta(hours=h, minutes=m, seconds=s) 
         media.save()        
+
+        sync(
+            url=f"http://{os.getenv('EDGE_CLOUD_SYNC_HOST', '0.0.0.0')}:{os.getenv('EDGE_CLOUD_SYNC_PORT', '27092')}/api/v1/event/media",
+            media_file=f"{settings.MEDIA_ROOT}/{video_path}",
+            params={   
+                'event_id': media.media_id,
+                'source_id': "media-manager",
+                'blob_name': os.path.basename(media.media_file.url),
+                'container_name': "delivery",
+                'target': "delivery/media",
+                'data': json.dumps(
+                    {
+                        "delivery_id": event.event_id,
+                        "media_id": media.media_id,
+                        "media_name": media.media_name,
+                        "media_type": media.media_type,
+                        "media_url": media.media_file.url,    
+                    }
+                )
+            },
+        )
 
         data = {
             "action": "done",
