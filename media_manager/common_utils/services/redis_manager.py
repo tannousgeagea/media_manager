@@ -1,5 +1,6 @@
 import cv2
 import uuid
+import time
 import redis
 import logging
 import numpy as np
@@ -94,7 +95,7 @@ class RedisManager:
         return status, img_key
     
     
-    def handle_storage_by_timestamp(self, image, key, expire, set_name):
+    def handle_storage_by_set_name(self, image, key, expire, set_name):
         """
         Encodes an image to a JPEG format, stores it in Redis with a unique key, and sets an expiry time.
 
@@ -123,6 +124,44 @@ class RedisManager:
             
             self.redis_client.zadd(set_name, {image_data: img_key})
             self.redis_client.expire(set_name, expire)
+            
+            status = True
+        except Exception  as err:
+            print("Error while handing storage with redis: %s" %err)
+            logging.error("Error while handing storage with redis: %s" %err)
+
+        return status, img_key
+    
+    
+    def handle_storage_by_timestamp(self, image, key, expire, set_name):
+        """
+        Encodes an image to a JPEG format, stores it in Redis with a unique key, and sets an expiry time.
+
+        Args:
+            image (numpy.ndarray): The image to be stored, represented as a NumPy array.
+
+        Returns:
+            tuple: A tuple containing:
+                - status (bool): True if the storage operation was successful, False otherwise.
+                - img_key (str): The unique key under which the image was stored.
+        """
+        status = False
+        img_key = key
+
+        if image is None:
+            logging.warning('Warning: Invalid Image')
+            return status, img_key
+        
+        try:   
+            _, buffer = cv2.imencode('.jpg', image)
+            image_data = np.array(buffer).tobytes()
+            
+            assert isinstance(expire, int), f'expire expected to be integer but got {type(expire)}'
+            assert not image_data is None, f'Image data is None'
+            assert isinstance(img_key, str), f'image key expected to be string but gut {type(img_key)}'
+            
+            self.redis_client.set(img_key, image_data, ex=expire)
+            self.redis_client.zadd(set_name, {img_key: time.time()})
             
             status = True
         except Exception  as err:
@@ -162,3 +201,29 @@ class RedisManager:
     @property
     def memory_info(self,):
         return self.redis_client.info('memory')
+    
+
+if __name__ == "__main__":
+    import os
+    redis_maneger = RedisManager(
+        host=os.getenv('REDIS_HOST'),
+        port=os.getenv('REDIS_PORT'),
+        db=0,
+        password=os.getenv('REDIS_PASSWORD'),
+    )
+    
+    set_name = "/sensor_raw/rgbmatrix_02/image_raw"
+    current_time = time.time()
+
+    thirty_seconds_ago = current_time - 60
+    image_keys = redis_maneger.redis_client.zrangebyscore(set_name, thirty_seconds_ago, '+inf')
+    images = []
+    for img_key in image_keys:
+        image_data = redis_maneger.retrieve_image(key=img_key)
+        if image_data:
+            images.append(image_data)
+    
+    
+    
+    print(len(image_keys))
+    print(len(images))

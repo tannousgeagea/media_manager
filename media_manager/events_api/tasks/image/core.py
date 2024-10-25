@@ -37,22 +37,19 @@ def generate_image(self, event, **kwargs):
     try:
         set_name = event.topic
         event_model = get_event(event)
-        images = redis_manager.redis_client.zrangebyscore(set_name, min=(time.time() - 3), max='+inf')
+        image_keys = redis_manager.redis_client.zrangebyscore(set_name, (time.time() - 120), '+inf')
         
-        if not images:
+        if not image_keys:
             # event_model.status = "failed"
             event_model.status_description = f"No images found in {set_name}"
             event_model.save()
             raise ValueError(f'No images found in {set_name}')
         
         
-        image = cv2.imdecode(
-                    np.frombuffer(
-                        images[-1], 
-                        dtype=np.uint8), 
-                    cv2.IMREAD_COLOR
-                    )
-             
+        suc, image = redis_manager.retrieve_image(key=image_keys[-1])
+        if not suc:
+            raise ValueError(f'No images found in {set_name}')    
+        
         filename = f'{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.jpg'
         success, media = get_media(event_model, media_id=str(uuid.uuid4()), media_name=filename, media_type="image", source_id=set_name)
         image_path = get_media_path(media, filename=filename)

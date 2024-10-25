@@ -58,17 +58,18 @@ class ImageRetriever:
         self.frames[set_name] = []
         
         while self.retrieving_event.is_set():
-            images = redis_manager.redis_client.zrangebyscore(set_name, int(min_ts), '+inf', withscores=True)
-            if not images:
+            image_keys = redis_manager.redis_client.zrangebyscore(set_name, int(min_ts), '+inf', withscores=False)
+            if not image_keys:
                 logging.warning('Nothing to retrieve')
                 continue
             
-            for image, key in images:
+            for key in image_keys:
                 if key in self.image_ids[set_name]:
                     continue
             
-                image_array = np.frombuffer(image, dtype=np.uint8)
-                image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+                success, image = redis_manager.retrieve_image(key=key)
+                if not success:
+                    continue
                 
                 print(f"Retrieving from {set_name}: {key} ... ...")
                 self.image_ids[set_name].append(key)

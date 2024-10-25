@@ -1,3 +1,4 @@
+import os
 import logging
 from data_reader.interface.grpc import client
 from data_reader.endpoints.ros2 import core as ros2_core
@@ -10,8 +11,8 @@ mapping = {
 
 params = {
     "mode": "ros2",
-    "topics": '/sensor_raw/rgbmatrix_02/image_raw',
-    "msg_type": "image",
+    "topics": os.getenv('ROS_TOPICS'),
+    "msg_type": os.getenv("ROS_MSG_TYPE"),
 }
 
 def main(mode="ros2"):

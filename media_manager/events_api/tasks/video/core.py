@@ -37,22 +37,24 @@ def generate_video(self, event, **kwargs):
         set_name = event.topic
         event_model = get_event(event)
         timestamp = time.time()
-        images = redis_manager.redis_client.zrangebyscore(set_name, min=(timestamp - 120), max=timestamp + 10)
+        # images = redis_manager.redis_client.zrangebyscore(set_name, min=(timestamp - 120), max=timestamp + 10)
         
-        if not images:
+        image_keys = redis_manager.redis_client.zrangebyscore(set_name, (timestamp - 120), '+inf')
+        
+        if not image_keys:
             event_model.status = "failed"
             event_model.status_description = f"No images found in {set_name}"
             event_model.save()
             raise ValueError(f'No images found in {set_name}')
         
         frames = []
-        for image in images:
-            frames.append(
-                cv2.imdecode(
-                    np.frombuffer(image, dtype=np.uint8), 
-                    cv2.IMREAD_COLOR)
-            )
+        for key in image_keys:
+            success, image = redis_manager.retrieve_image(key=key)
+            if not success:
+                continue
             
+            print(f"Retrieving from {set_name}: {key} ... ...")
+            frames.append(image)
             
         filename = f'{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.mp4'
         success, media = get_media(event_model, media_id=str(uuid.uuid4()), media_name="video", media_type="video", source_id=set_name)
