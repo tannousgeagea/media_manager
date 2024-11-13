@@ -2,6 +2,7 @@ import os
 import django
 django.setup()
 
+import uuid
 import json
 from celery import Celery
 from celery import shared_task
@@ -88,10 +89,11 @@ def stop_retrieving(self, event, **kwargs):
         media = {}
         video_paths = {}
         for source in topics:
-            filename = f'{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.mp4'
+            src = source.replace("/", "_")[1:]
+            filename = f'{src}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.mp4'
             success, media_model = get_media(
                 event=event_model, 
-                media_id=event.event_id, 
+                media_id=str(uuid.uuid4()),
                 media_name=event.event_name, 
                 media_type="video",
                 source_id=source,
