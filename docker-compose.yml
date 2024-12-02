@@ -52,9 +52,6 @@ services:
     image: "rabbitmq:3-management-alpine"
     container_name: media-manager-rabbitmq
     env_file: .env
-    ports:
-      - "${RABBITMQ_PORT}:5672"
-      - "${RABBITMQ_INTERFACE_PORT}:15672"
     volumes:
       - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq
       - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
