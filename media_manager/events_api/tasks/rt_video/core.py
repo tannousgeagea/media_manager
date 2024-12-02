@@ -135,7 +135,8 @@ def stop_retrieving(self, event, **kwargs):
                                 "media_id": media_model.media_id,
                                 "media_name": media_model.media_name,
                                 "media_type": media_model.media_type,
-                                "media_url": media_model.media_file.url,    
+                                "media_url": media_model.media_file.url,
+                                "sensor_box_location": media_model.event.edge_box.sensor_box_location,
                             }
                         )
                     },
@@ -143,7 +144,8 @@ def stop_retrieving(self, event, **kwargs):
             
         data = {
             "action": "stopped",
-            "time": datetime.now().strftime("%Y-%m-%d %H-%M-%S")
+            "time": datetime.now().strftime("%Y-%m-%d %H-%M-%S"),
+            "location": media_model.event.edge_box.sensor_box_location,
         }
         
         event_model.status = "completed"

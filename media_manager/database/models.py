@@ -26,6 +26,7 @@ class EdgeBoxInfo(models.Model):
     plant = models.ForeignKey(PlantInfo, on_delete=models.CASCADE)
     edge_box_id = models.CharField(max_length=255, unique=True)
     location = models.CharField(max_length=255)
+    sensor_box_location = models.CharField(max_length=100, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     meta_info =  models.JSONField(null=True, blank=True)
     
