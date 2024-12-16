@@ -11,8 +11,8 @@ mapping = {
 
 params = {
     "mode": "ros2",
-    "topics": os.getenv('ROS_TOPICS'),
-    "msg_type": os.getenv("ROS_MSG_TYPE"),
+    "topics": os.getenv('ROS_TOPICS').split(','),
+    "msg_type": os.getenv("ROS_MSG_TYPE").split(','),
 }
 
 def main(mode="ros2"):
