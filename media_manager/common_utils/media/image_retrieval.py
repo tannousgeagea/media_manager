@@ -44,6 +44,7 @@ class ImageRetriever:
             if video_paths:
                 generate_video(
                     frames=self.frames[set_name],
+                    timestamps=self.image_ids[set_name],
                     framerate=5,
                     video_path=video_paths[set_name],
                     scale=0.5

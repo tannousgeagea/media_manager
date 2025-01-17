@@ -4,6 +4,7 @@ import logging
 import subprocess
 from PIL import Image
 from decimal import Decimal
+from datetime import datetime, timedelta
 
 def create_video_from_frames(output_filename, width, height, framerate=24):
     command = [
@@ -30,7 +31,7 @@ def create_video_from_frames(output_filename, width, height, framerate=24):
 def convert_bgr_to_rgb(opencv_image):
     return cv2.cvtColor(opencv_image, cv2.COLOR_BGR2RGB)
 
-def generate_video(frames, framerate, video_path, scale=1.):
+def generate_video(frames, timestamps, framerate, video_path, scale=1.):
     success = False
     if not frames:
         print('No data are found')
@@ -41,6 +42,9 @@ def generate_video(frames, framerate, video_path, scale=1.):
     process = create_video_from_frames(video_path, width=w, height=h, framerate=framerate)
     for i, frame in enumerate(frames):
         frame = cv2.resize(frame, (w, h), interpolation=cv2.INTER_NEAREST)
+        timestamp = (datetime.fromtimestamp(float(timestamps[i])) + timedelta(hours=1)).strftime('%Y-%m-%d %H:%M:%S')
+        cv2.putText(frame, timestamp, (10, h - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+        
         image = Image.fromarray(convert_bgr_to_rgb(frame))
         process.stdin.write(image.tobytes())
 
