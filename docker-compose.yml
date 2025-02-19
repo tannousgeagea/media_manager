@@ -3,7 +3,7 @@ version: '3.3'
 services:
   # core
   media-manager:
-    image: wasteant/wasteant:media-manager-service-ubuntu.20.04
+    image: tannous/tannous:media-manager-ubuntu.22.04
     container_name: media-manager-core
     stdin_open: true # docker run -i
     tty: true        # docker run -t
@@ -76,6 +76,15 @@ services:
      - internal
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+  ros2_bag:
+    image: tannous/tannous:ros2-humble-player
+    container_name: ros2_bag_player
+    stdin_open: true
+    tty: true
+    networks: 
+      - internal
+    command: ["ros2", "bag", "play", "/rosbags/rosbag2_2025_02_12-09_23_51/rosbag2_2025_02_12-09_23_51_0.db3", '--loop']
 
 networks:
   internal:

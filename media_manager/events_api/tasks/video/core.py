@@ -48,6 +48,7 @@ def generate_video(self, event, **kwargs):
             raise ValueError(f'No images found in {set_name}')
         
         frames = []
+        images_ids = []
         for key in image_keys:
             success, image = redis_manager.retrieve_image(key=key)
             if not success:
@@ -55,6 +56,7 @@ def generate_video(self, event, **kwargs):
             
             print(f"Retrieving from {set_name}: {key} ... ...")
             frames.append(image)
+            images_ids.append(key)
             
         filename = f'{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.mp4'
         success, media = get_media(event_model, media_id=str(uuid.uuid4()), media_name="video", media_type="video", source_id=set_name)
@@ -67,6 +69,7 @@ def generate_video(self, event, **kwargs):
 
         gen_video(
             frames=frames,
+            timestamps=images_ids,
             framerate=FRAME_RATE,
             video_path=f"{settings.MEDIA_ROOT}/{video_path}",
             scale=0.5,
