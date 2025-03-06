@@ -110,7 +110,8 @@ def stop_retrieving(self, event, **kwargs):
             video_paths[source] = f"{settings.MEDIA_ROOT}/{video_path}"
             
         image_retriever.stop(
-            video_paths=video_paths
+            video_paths=video_paths,
+            location=event_model.edge_box.meta_info.get('location') if event_model.edge_box.meta_info else None
         )
         
         for source, media_model in media.items():

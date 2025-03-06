@@ -34,7 +34,7 @@ class ImageRetriever:
             self.threads[set_name] = thread
             thread.start()
 
-    def stop(self, video_paths:dict=None):
+    def stop(self, video_paths:dict=None, location=None):
         self.retrieving_event.clear()
         
         for set_name, thread in self.threads.items():
@@ -47,7 +47,8 @@ class ImageRetriever:
                     timestamps=self.image_ids[set_name],
                     framerate=5,
                     video_path=video_paths[set_name],
-                    scale=0.5
+                    scale=0.5,
+                    location=location,
                 )
 
     def retrieve_frames(self, set_name:str, min_ts=None):

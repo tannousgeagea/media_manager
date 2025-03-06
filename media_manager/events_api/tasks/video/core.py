@@ -73,6 +73,7 @@ def generate_video(self, event, **kwargs):
             framerate=FRAME_RATE,
             video_path=f"{settings.MEDIA_ROOT}/{video_path}",
             scale=0.5,
+            location=event_model.edge_box.meta_info.get('location') if event_model.edge_box.meta_info else None
         )
 
         if not os.path.exists(f"{settings.MEDIA_ROOT}/{video_path}"):
