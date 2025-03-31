@@ -114,6 +114,7 @@ RUN pip3 install opencv-python
 RUN pip3 install pillow
 RUN pip3 install tqdm
 RUN pip3 install psycopg2-binary
+RUN pip3 install django-unfold
 
 # upgrade everything
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get upgrade -q -y \

@@ -1,10 +1,12 @@
 import re
 import cv2
+import pytz
 import logging
 import subprocess
 from PIL import Image
 from decimal import Decimal
 from datetime import datetime, timedelta
+from common_utils.models.common import get_timezone, convert_to_local_time
 
 def create_video_from_frames(output_filename, width, height, framerate=24):
     command = [
@@ -37,13 +39,14 @@ def generate_video(frames, timestamps, framerate, video_path, location=None, sca
         print('No data are found')
         return success
     
+    tz = pytz.timezone(get_timezone())
     h0, w0, _ = frames[0].shape
     h, w = int(h0 * scale), int(w0 * scale)
     process = create_video_from_frames(video_path, width=w, height=h, framerate=framerate)
     _location = f" | {location}" if location else '' 
     for i, frame in enumerate(frames):
         frame = cv2.resize(frame, (w, h), interpolation=cv2.INTER_NEAREST)
-        timestamp = (datetime.fromtimestamp(float(timestamps[i])) + timedelta(hours=1)).strftime('%Y-%m-%d %H:%M:%S') + _location
+        timestamp = convert_to_local_time(dt=datetime.fromtimestamp(float(timestamps[i])), tenant_tz=tz, format='%Y-%m-%d %H:%M:%S') + _location
         cv2.putText(frame, timestamp, (10, h - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
         
         image = Image.fromarray(convert_bgr_to_rgb(frame))

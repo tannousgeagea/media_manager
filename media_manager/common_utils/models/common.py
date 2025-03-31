@@ -5,6 +5,7 @@ import logging
 from datetime import datetime, timezone
 
 from database.models import (
+    PlantInfo,
     EdgeBoxInfo, 
     Event, 
     Media,
@@ -66,3 +67,13 @@ def get_media(
         logging.error(f"Error while save media file: {err}")
         
     return success, media
+
+def get_timezone():
+    plant_info = PlantInfo.objects.all().first()
+    if plant_info:
+        return plant_info.timezone
+
+    return "Europe/Berlin"
+
+def convert_to_local_time(dt:datetime, tenant_tz:str, format:str="%Y-%m-%d %H-%M-%S"):
+    return dt.astimezone(tenant_tz).strftime(format)

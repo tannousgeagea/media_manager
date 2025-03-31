@@ -1,4 +1,5 @@
 import hashlib
+import pytz
 from django.db import models
 
 
@@ -13,6 +14,12 @@ class PlantInfo(models.Model):
     domain = models.CharField(max_length=255, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     meta_info = models.JSONField(null=True, blank=True)
+    timezone = models.CharField(
+        max_length=50,
+        choices=[(tz, tz) for tz in pytz.all_timezones],
+        default="Europe/Berlin",
+        help_text="Timezone for the tenant"
+    )
     
     class Meta:
         db_table = 'plant_info'
