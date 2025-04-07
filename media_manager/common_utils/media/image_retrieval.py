@@ -37,7 +37,14 @@ class ImageRetriever:
     def stop(self, video_paths:dict=None, location=None):
         self.retrieving_event.clear()
         
-        for set_name, thread in self.threads.items():
+        if not video_paths:
+            return
+
+        for set_name, video_path in video_paths.items():
+            if set_name not in self.threads:
+                continue
+
+            thread = self.threads[set_name]
             if thread.is_alive():
                 thread.join()
             
@@ -46,7 +53,7 @@ class ImageRetriever:
                     frames=self.frames[set_name],
                     timestamps=self.image_ids[set_name],
                     framerate=5,
-                    video_path=video_paths[set_name],
+                    video_path=video_path,
                     scale=0.5,
                     location=location,
                 )

@@ -20,8 +20,10 @@ def create_video_from_frames(output_filename, width, height, framerate=24):
         '-i', '-',  # The input comes from a pipe
         '-an',  # No audio
         '-vcodec', 'libx264',  # Use H.264 codec
+        '-preset', 'slow',
+        '-crf', '23',
         '-pix_fmt', 'yuv420p',  # Pixel format for compatibility
-        '-b:v', '7000k',  # Bitrate
+        # '-b:v', '7000k',  # Bitrate
         '-movflags', '+faststart',  # Fast start for MP4 files
         output_filename
     ]

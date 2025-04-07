@@ -10,6 +10,7 @@ from sensor_msgs.msg import CompressedImage
 from cv_bridge import CvBridge, CvBridgeError
 from typing import Optional, Union, List, AnyStr
 from common_utils.time.time_tracker import KeepTrackOfTime
+from common_utils.media.image_utils import compress_image, decode_image, encode_image
 
 keep_track_of_time = KeepTrackOfTime()  
 
@@ -53,7 +54,13 @@ class ROS2Manager(Node):
             cv_image = self.msg_to_cv2(msg)
             h0, w0, _ = cv_image.shape
             cv_image = cv2.resize(cv_image, (int(w0 * 0.5), int(h0 * 0.5)), interpolation=cv2.INTER_NEAREST)
-            
+            try:
+                _, im_buf_arr = encode_image(cv_image=cv_image)
+                compressed_image = compress_image(im_buf_arr, quality=50)
+                cv_image = decode_image(compressed_image)
+            except:
+                pass
+
             payload = {
                 "cv_image": cv_image,
                 "img_key": str(time.time()),
