@@ -1,4 +1,5 @@
 import os
+import time
 import django
 django.setup()
 
@@ -109,6 +110,8 @@ def stop_retrieving(self, event, **kwargs):
             media[source] = media_model
             video_paths[source] = f"{settings.MEDIA_ROOT}/{video_path}"
             
+        print("Waiting 60 seconds ... ...")
+        time.sleep(60)
         image_retriever.stop(
             video_paths=video_paths,
             location=event_model.edge_box.meta_info.get('location') if event_model.edge_box.meta_info else None
